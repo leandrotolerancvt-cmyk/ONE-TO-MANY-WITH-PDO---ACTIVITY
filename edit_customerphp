@@ -1,0 +1,27 @@
+<?php
+require "config/database.php";
+
+// UPDATE customer
+if (isset($_POST['update'])) {
+    $stmt = $pdo->prepare("UPDATE customers SET full_name=?, contact_no=?, address=? WHERE customer_id=?");
+    $stmt->execute([$_POST['full_name'], $_POST['contact_no'], $_POST['address'], $_POST['customer_id']]);
+    header("Location: index.php"); exit;
+}
+$stmt = $pdo->prepare("SELECT * FROM customers WHERE customer_id = ?");
+$stmt->execute([$_GET['id']]);
+$c = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$c) die("Customer not found.");
+?>
+<!DOCTYPE html>
+<html><head><title>Edit Customer</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<h1>Edit Customer</h1>
+<form method="POST">
+    <input type="hidden" name="customer_id" value="<?= $c['customer_id'] ?>">
+    <input type="text" name="full_name" value="<?= htmlspecialchars($c['full_name']) ?>" required>
+    <input type="text" name="contact_no" value="<?= htmlspecialchars($c['contact_no']) ?>" required>
+    <input type="text" name="address" value="<?= htmlspecialchars($c['address']) ?>" required>
+    <button type="submit" name="update">Save Changes</button>
+    <a href="index.php">Cancel</a>
+</form>
+</body></html>
