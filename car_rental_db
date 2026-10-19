@@ -1,0 +1,23 @@
+CREATE DATABASE IF NOT EXISTS car_rental_db;
+USE car_rental_db;
+
+-- PARENT TABLE (the "ONE" side)
+CREATE TABLE IF NOT EXISTS customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name   VARCHAR(100) NOT NULL,
+    contact_no  VARCHAR(20)  NOT NULL,
+    address     VARCHAR(150) NOT NULL
+);
+
+-- CHILD TABLE (the "MANY" side)
+CREATE TABLE IF NOT EXISTS rentals (
+    rental_id     INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id   INT NOT NULL,
+    car_model     VARCHAR(100) NOT NULL,
+    plate_no      VARCHAR(20)  NOT NULL,
+    rental_date   DATE NOT NULL,
+    return_date   DATE NOT NULL,
+    total_price   DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
