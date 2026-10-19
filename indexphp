@@ -1,0 +1,44 @@
+<?php
+require "config/database.php";
+
+// INSERT customer
+if (isset($_POST['add'])) {
+    $stmt = $pdo->prepare("INSERT INTO customers (full_name, contact_no, address) VALUES (?, ?, ?)");
+    $stmt->execute([$_POST['full_name'], $_POST['contact_no'], $_POST['address']]);
+    header("Location: index.php"); exit;
+}
+// DELETE customer
+if (isset($_GET['delete'])) {
+    $stmt = $pdo->prepare("DELETE FROM customers WHERE customer_id = ?");
+    $stmt->execute([$_GET['delete']]);
+    header("Location: index.php"); exit;
+}
+$customers = $pdo->query("SELECT * FROM customers ORDER BY customer_id DESC")->fetchAll(PDO::FETCH_ASSOC);
+?>
+<!DOCTYPE html>
+<html><head><title>Car Rental - Customers</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<h1>Car Rental System: Customers</h1>
+<form method="POST">
+    <input type="text" name="full_name" placeholder="Full name" required>
+    <input type="text" name="contact_no" placeholder="Contact no." required>
+    <input type="text" name="address" placeholder="Address" required>
+    <button type="submit" name="add">Add Customer</button>
+</form>
+<table>
+<tr><th>ID</th><th>Name</th><th>Contact</th><th>Address</th><th>Actions</th></tr>
+<?php foreach ($customers as $c): ?>
+<tr>
+    <td><?= $c['customer_id'] ?></td>
+    <td><?= htmlspecialchars($c['full_name']) ?></td>
+    <td><?= htmlspecialchars($c['contact_no']) ?></td>
+    <td><?= htmlspecialchars($c['address']) ?></td>
+    <td>
+        <a href="rentals.php?customer_id=<?= $c['customer_id'] ?>">View Rentals</a> |
+        <a href="edit_customer.php?id=<?= $c['customer_id'] ?>">Edit</a> |
+        <a href="index.php?delete=<?= $c['customer_id'] ?>" onclick="return confirm('Delete this customer and all their rentals?')">Delete</a>
+    </td>
+</tr>
+<?php endforeach; ?>
+</table>
+</body></html>
