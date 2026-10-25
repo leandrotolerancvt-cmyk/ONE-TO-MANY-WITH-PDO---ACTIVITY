@@ -1,0 +1,57 @@
+<?php
+require "config/database.php";
+$cid = $_GET['customer_id'] ?? null;
+if (!$cid) die("No customer selected.");
+
+$stmt = $pdo->prepare("SELECT * FROM customers WHERE customer_id = ?");
+$stmt->execute([$cid]);
+$customer = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$customer) die("Customer not found.");
+
+// INSERT rental
+if (isset($_POST['add'])) {
+    $stmt = $pdo->prepare("INSERT INTO rentals (customer_id, car_model, plate_no, rental_date, return_date, total_price) VALUES (?,?,?,?,?,?)");
+    $stmt->execute([$cid, $_POST['car_model'], $_POST['plate_no'], $_POST['rental_date'], $_POST['return_date'], $_POST['total_price']]);
+    header("Location: rentals.php?customer_id=$cid"); exit;
+}
+// DELETE rental
+if (isset($_GET['delete'])) {
+    $stmt = $pdo->prepare("DELETE FROM rentals WHERE rental_id = ? AND customer_id = ?");
+    $stmt->execute([$_GET['delete'], $cid]);
+    header("Location: rentals.php?customer_id=$cid"); exit;
+}
+$stmt = $pdo->prepare("SELECT * FROM rentals WHERE customer_id = ? ORDER BY rental_id DESC");
+$stmt->execute([$cid]);
+$rentals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+<!DOCTYPE html>
+<html><head><title>Rentals</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<a href="index.php">&larr; Back to Customers</a>
+<h1>Rentals of <?= htmlspecialchars($customer['full_name']) ?> </h1>
+<form method="POST">
+    <input type="text" name="car_model" placeholder="Car model" required>
+    <input type="text" name="plate_no" placeholder="Plate no." required>
+    <label>Rental date <input type="date" name="rental_date" required></label>
+    <label>Return date <input type="date" name="return_date" required></label>
+    <input type="number" step="0.01" name="total_price" placeholder="Total price" required>
+    <button type="submit" name="add">Add Rental</button>
+</form>
+<table>
+<tr><th>ID</th><th>Car</th><th>Plate</th><th>Rental Date</th><th>Return Date</th><th>Price</th><th>Actions</th></tr>
+<?php foreach ($rentals as $r): ?>
+<tr>
+    <td><?= $r['rental_id'] ?></td>
+    <td><?= htmlspecialchars($r['car_model']) ?></td>
+    <td><?= htmlspecialchars($r['plate_no']) ?></td>
+    <td><?= $r['rental_date'] ?></td>
+    <td><?= $r['return_date'] ?></td>
+    <td><?= number_format($r['total_price'], 2) ?></td>
+    <td>
+        <a href="edit_rental.php?id=<?= $r['rental_id'] ?>">Edit</a> |
+        <a href="rentals.php?customer_id=<?= $cid ?>&delete=<?= $r['rental_id'] ?>" onclick="return confirm('Delete this rental?')">Delete</a>
+    </td>
+</tr>
+<?php endforeach; ?>
+</table>
+</body></html>
